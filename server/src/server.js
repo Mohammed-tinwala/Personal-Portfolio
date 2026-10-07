@@ -25,10 +25,14 @@ const PORT = process.env.PORT || 5000;
 
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: [
+      "http://localhost:5173",
+      "https://personal-portfolio-teal-five-99.vercel.app",
+    ],
     credentials: true,
   })
 );
+
 
 app.use(express.json());
 app.use(cookieParser());
