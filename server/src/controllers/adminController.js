@@ -26,7 +26,7 @@ export const loginAdmin = async (req, res) => {
       FROM admin_users
       WHERE email = ?
       LIMIT 1`,
-      [email.trim()]
+      [email.trim()],
     );
 
     console.log("ROWS FOUND:", rows.length); // 👈 LOG 2
@@ -40,7 +40,12 @@ export const loginAdmin = async (req, res) => {
 
     const admin = rows[0];
 
-     console.log("HASH:", admin.password_hash, "LENGTH:", admin.password_hash?.length); // 👈 LOG 3
+    console.log(
+      "HASH:",
+      admin.password_hash,
+      "LENGTH:",
+      admin.password_hash?.length,
+    ); // 👈 LOG 3
 
     if (!admin.is_active) {
       return res.status(403).json({
@@ -49,10 +54,7 @@ export const loginAdmin = async (req, res) => {
       });
     }
 
-    const passwordMatch = await bcrypt.compare(
-      password,
-      admin.password_hash
-    );
+    const passwordMatch = await bcrypt.compare(password, admin.password_hash);
 
     console.log("MATCH:", passwordMatch); // 👈 LOG 4
 
@@ -73,13 +75,16 @@ export const loginAdmin = async (req, res) => {
       process.env.JWT_SECRET,
       {
         expiresIn: "7d",
-      }
+      },
     );
+
+    // eslint-disable-next-line no-undef
+    const isProduction = process.env.NODE_ENV === "production";
 
     res.cookie("admin_token", token, {
       httpOnly: true,
-      secure: false,
-      sameSite: "lax",
+      secure: isProduction,
+      sameSite: isProduction ? "none" : "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -115,7 +120,7 @@ export const getCurrentAdmin = async (req, res) => {
       FROM admin_users
       WHERE id = ?
       LIMIT 1`,
-      [req.admin.id]
+      [req.admin.id],
     );
 
     if (rows.length === 0) {
@@ -148,11 +153,15 @@ export const getCurrentAdmin = async (req, res) => {
   }
 };
 
+
 export const logoutAdmin = (req, res) => {
+  // eslint-disable-next-line no-undef
+  const isProduction = process.env.NODE_ENV === "production";
+
   res.clearCookie("admin_token", {
     httpOnly: true,
-    secure: false,
-    sameSite: "lax",
+    secure: isProduction,
+    sameSite: isProduction ? "none" : "lax",
   });
 
   res.json({
